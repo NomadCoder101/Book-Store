@@ -1,0 +1,412 @@
+(march_24) threat_hunter@Cyberspace:~/Desktop/march_24/bookstore/bookstore$ ./manage.py shell
+Python 3.10.7 (main, May 29 2023, 13:51:48) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from book_outlet.models import Book
+>>> harry_potter=Book()
+>>> harry_potter
+<Book: Book object (None)>
+>>> 
+>>> harry_potter=Book(title="Harry Potter",rating=5)
+>>> harry_potter
+<Book: Book object (None)>
+>>> harry_potter.title
+'Harry Potter'
+>>> harry_potter.rating
+5
+>>> harry_potter.save()
+
+
+ ltr = Book(title="Lord of the Ring",rating=4)
+ >>> ltr
+<Book: Book object (None)>
+>>> ltr.title
+'Lord of the Ring'
+>>> 
+
+>>> Book.objects.all()
+<QuerySet [<Book: Book object (1)>, <Book: Book object (2)>]>
+
+=====================================================
+
+
+note: After adding __str__ method
+
+(march_24) threat_hunter@Cyberspace:~/Desktop/march_24/bookstore/bookstore$ ./manage.py shell
+Python 3.10.7 (main, May 29 2023, 13:51:48) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from book_outlet.models import Book
+>>> Book.objects.all()
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>]>
+>>> 
+
+======================================================
+
+Note:  After adding 2 more fields 
+
+>>> from book_outlet.models import Book
+>>> Book.objects.all()[0]
+<Book: Harry Potter (5)>
+>>> Book.objects.all()[0].title
+'Harry Potter'
+>>> Book.objects.all()[0].rating
+5
+>>> Book.objects.all()[0].is_bestselling
+False
+>>> Book.objects.all()[0].author
+>>> 
+
+=============================
+
+
+>>> Book.objects.all()[0]
+<Book: Harry Potter (5)>
+>>> hr = Book.objects.all()[0]
+>>> hr.title
+'Harry Potter'
+>>> hr.author = 'J.K Rowlings'
+>>> hr.is_bestselling=True
+>>> hr.save()
+>>> 
+====================================
+
+>>> hr = Book.objects.all()[1]
+>>> hr.title
+'Lord of the Ring'
+>>> hr.author = 'J.R Tolkien'
+>>> hr.is_bestselling=True
+>>> hr.save()
+>>> 
+
+================================
+
+>>> test = Book(title="tt",rating=4,author="tg",is_bestselling=True)
+>>> test
+<Book: tt (4)>
+>>> test.save()
+>>> test
+<Book: tt (4)>
+>>> test.title = "new"
+>>> test
+<Book: new (4)>
+>>> test.delete()
+(1, {'book_outlet.Book': 1})
+>>> 
+
+====================================
+
+notes: create instead of save
+
+>>> Book.objects.create(title="blank slate",rating=4,author="steven pinker",is_bestselling=True)
+<Book: blank slate (4)>
+
+>>> Book.objects.create(title="bible",rating=1,author="jesus",is_bestselling=False)
+<Book: bible (1)>
+
+>>> Book.objects.all()
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>, <Book: blank slate (4)>, <Book: bible (1)>]>
+>>> 
+
+===============================================
+
+notes: Quering and filtering of data
+
+notes: using get .
+
+>>> Book.objects.get(id=6)
+<Book: Some Random Book (2)>
+>>> Book.objects.get(title="Harry Potter")
+<Book: Harry Potter (5)>
+>>> Book.objects.get(rating=5)
+<Book: Harry Potter (5)>
+>>> Book.objects.get(author='steven pinker')
+<Book: blank slate (4)>
+
+===========
+notes: using filter  with AND conditional comparison
+
+>>> Book.objects.filter(is_bestselling=True)
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>, <Book: blank slate (4)>]>
+>>> 
+
+>>> Book.objects.filter(rating=4)
+<QuerySet [<Book: Lord of the Ring (4)>, <Book: blank slate (4)>]>
+
+>>> Book.objects.filter(rating=4 , is_bestselling=True)
+<QuerySet [<Book: Lord of the Ring (4)>, <Book: blank slate (4)>]>
+
+>>> Book.objects.filter(rating__lt = 4)
+<QuerySet [<Book: bible (1)>, <Book: Some Random Book (2)>]>
+>>> 
+
+>>> Book.objects.filter(rating__lte = 4)
+<QuerySet [<Book: Lord of the Ring (4)>, <Book: blank slate (4)>, <Book: bible (1)>, <Book: Some Random Book (2)>]>
+>>> 
+
+>>> Book.objects.filter(rating__gt = 4)
+<QuerySet [<Book: Harry Potter (5)>]>
+>>>
+
+>>> Book.objects.filter(rating__gt=3 , title__contains="Harry")
+<QuerySet [<Book: Harry Potter (5)>]>
+>>> 
+
+>>> Book.objects.filter(rating__gt=3 , title__contains="blank", author__contains="Steve")
+<QuerySet [<Book: blank slate (4)>]>
+>>> 
+>>> Book.objects.filter(rating__gt=3 , title__contains="blank", author__icontains="Steve")
+<QuerySet [<Book: blank slate (4)>]>
+>>> 
+
+===========
+notes: using filter  with OR conditional comparison
+
+>>> from django.db.models import Q
+>>> >>> Book.objects.filter(Q(rating__lt=3) | Q(is_bestselling=True))
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>, <Book: blank slate (4)>, <Book: bible (1)>, <Book: Some Random Book (2)>]>
+>>> 
+
+notes: for AND use ,  and | for Or conditional queries.
+
+>>> Book.objects.filter(Q(rating__lt=3) | Q(is_bestselling=True),Q(author__contains="J.K"))
+<QuerySet [<Book: Harry Potter (5)>]>
+>>> 
+
+>>> Book.objects.filter(Q(rating__lt=3) | Q(is_bestselling=True),author__contains="J.K")
+<QuerySet [<Book: Harry Potter (5)>]>
+>>> 
+
+===========================================
+
+notes: Query Performance and chainig queries .
+
+Book.objects.create(title="new book", author="new author", is_bestselling=True,rating=5)
+
+>>> bestsellers= Book.objects.filter(is_bestselling=True)
+>>> amazing_bestsellers= bestsellers.filter(rating__gt=4)
+>>> bestsellers
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>, <Book: blank slate (4)>]>
+>>> amazing_bestsellers
+<QuerySet [<Book: Harry Potter (5)>]>
+>>> 
+
+>> Book.objects.create(title="new book", author="new author", is_bestselling=True,rating=5)
+<Book: new book (5)>
+>>> bestsellers
+<QuerySet [<Book: Harry Potter (5)>, <Book: Lord of the Ring (4)>, <Book: blank slate (4)>, <Book: new book (5)>]>
+>>> amazing_bestsellers
+<QuerySet [<Book: Harry Potter (5)>, <Book: new book (5)>]>
+>>> 
+>>> new = amazing_bestsellers.get(title="new book")
+>>> new
+<Book: new book (5)>
+>>> 
+
+========================
+
+note:detail page view
+
+1:
+from django.http import Http404
+
+def detail_page(request,id):
+    
+    try:
+      book= Book.objects.get(id=id)
+    except: raise Http404()
+    
+    
+    return render(request,'book_outlet/book_detail.html',{'book':book})
+
+
+2:
+
+from django.shortcuts import render,get_object_or_404
+
+
+def detail_page(request,id):
+    
+    book=get_object_or_404(Book.objects.get(id=id)
+    
+    
+    return render(request,'book_outlet/book_detail.html',{'book':book})
+
+==================
+
+
+index.html to link to deail
+
+1:
+
+        {% for book in books %}
+        <li><a href="{% url "detail_page" book.id %}">{{book.title}}</a></li>
+       
+        {% endfor %}
+
+
+==================
+
+#setting  up reverse url 
+
+note urls.py:  path('<int:id>',views.detail_page,name='detail_page')
+
+models.py =  from django.shortcuts import reverse
+
+class Book(models.Model):
+    title=models.CharField(max_length=50)
+    rating=models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    author=models.CharField(null=True,max_length=100)
+    is_bestselling=models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+
+        return reverse('detail_page', args=(self.id))
+
+    
+    def __str__(self):
+        
+        return f"{self.title} ({self.rating})"
+
+
+index.html 
+      <ul>
+        {% for book in books %}
+        <li><a href="{{book.get_absolute_url}}">{{book.title}}</a></li>
+       
+        {% endfor %}
+      </ul>
+
+
+===============================================
+#setting up the slug field
+
+from django.utils.text import slugify
+
+class Book(models.Model):
+    title=models.CharField(max_length=50)
+    rating=models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    author=models.CharField(null=True,max_length=100)
+    is_bestselling=models.BooleanField(default=False)
+    slug= models.SlugField(default="",null=False ,db_index=True)   <==this one 
+     
+    def get_absolute_url(self):
+        return reverse("detail_page", args=[self.slug])  ==> change from args=[self.id]
+
+#note: overriding save builtin method
+
+    def save(self,*args,**kwargs):
+
+        self.slug =slugify(self.title)
+
+        super().save(*args,**kwargs)
+    
+    
+    def __str__(self):
+        
+        return f"{self.title} ({self.rating})"
+
+
+
+==========================================
+
+##book_outlet views.
+
+
+from django.shortcuts import render,reverse,get_object_or_404
+
+from django.http import Http404
+
+from django.db.models import Avg, Min, Max
+
+from .models import Book
+
+
+# Create your views here.
+
+def index(request):
+    
+   books= Book.objects.all().order_by('-title')
+   num_books= books.count()
+   avg_rating= books.aggregate(Avg('rating'))
+    
+    
+   return render(request,'book_outlet/index.html',{'books':books, 'num_books':num_books, 'avg_rating':avg_rating})
+
+
+
+def detail_page(request,slug):
+    
+    book=get_object_or_404(Book,slug=slug)
+    
+    
+    return render(request,'book_outlet/book_detail.html',{'book':book})
+
+
+=======================================
+
+# Admin feature
+
+from django.contrib import admin
+
+from .models import Book
+
+class BookAdmin(admin.ModelAdmin):
+   # readonly_fields = ('slug',)
+    prepopulated_fields = {'slug':('title',)}
+    list_filter =('author','rating',)
+    list_display =('author','title',)
+ 
+    
+admin.site.register(Book,BookAdmin),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

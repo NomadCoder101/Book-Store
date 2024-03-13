@@ -1,0 +1,58 @@
+settings.joson new
+
+{
+    "python.pythonPath":"usr/local/bin/python3",
+    "window.zoomLevel":"6",
+    "python.languageServer":"Pylance",
+    "files.assciations":{
+        "**/*.html:"html",
+        "**/templates/**/*.html":"django-html",
+        "**/templates/**/*":"django-txt",
+        "**/requirements{/**,*}.{txt,in}:"pip-requirements",
+
+        },
+        "emmet.includeLanguages":{"django-html":"html"}
+
+}
+
+
+
+
+=========
+settings.joson old
+
+{
+    "workbench.colorTheme": "Just Black",
+    "tailwindCSS.emmetCompletions": true,
+   
+    "css.lint.unknownAtRules": "ignore",
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnType": true,
+    "editor.fontSize": 18,
+    "editor.wordWrap": "on",
+    "liveServer.settings.donotVerifyTags": true,
+    "tabnine.experimentalAutoImports": true,
+    "editor.minimap.enabled": false,
+    "[django-html]": {
+    
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+    
+    },
+    "liveServer.settings.fullReload": true,
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+       
+       
+    },
+    
+    
+
+    "workbench.activityBar.visible": false,
+    "diffEditor.wordWrap": "on",
+    "liveServer.settings.donotShowInfoMsg": true
+    
+
+
+}
+
+ 
