@@ -360,6 +360,289 @@ class BookAdmin(admin.ModelAdmin):
     
 admin.site.register(Book,BookAdmin),
 
+===========================
+
+Relationships . OneToMany  Foreign Key
+
+from django.db import models
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+from django.shortcuts import reverse
+
+from django.utils.text import slugify
+
+# Create your models here.
+
+
+class Author(models.Model,):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+
+
+
+class Book(models.Model):
+    title=models.CharField(max_length=50)
+    rating=models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    author=models.ForeignKey(Author, on_delete=models.CASCADE,null=True)
+    is_bestselling=models.BooleanField(default=False)
+    slug= models.SlugField(default="",null=False,blank=True,db_index=True)
+    
+    def get_absolute_url(self):
+        return reverse("detail_page", args=[self.slug])
+    
+    # def save(self,*args,**kwargs):
+
+    #     self.slug =slugify(self.title)   ==> replaced after adding the admin prepopulate_field
+
+    #     super().save(*args,**kwargs)
+    
+    
+    def __str__(self):
+        
+        return f"{self.title} ({self.rating})"
+
+
+
+(march_24) threat_hunter@Cyberspace:~/Desktop/march_24/bookstore/bookstore$ ./manage.py shell
+Python 3.10.7 (main, May 29 2023, 13:51:48) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+>>> from book_outlet.models import Book
+>>> from book_outlet.models import Book
+>>> Book.objects.all().delete()
+exit()
+
+Do migration
+
+>>> st=Author(first_name='Steven',last_name='Pinker')
+>>> st=Author(first_name='Steven',last_name='Pinker')
+>>> st.save()
+
+>>> book = Book(title="Blank Slate",rating=5,author =st,is_bestselling=True,slug='blank-slate')
+>>> book
+<Book: Blank Slate (5)>
+>>> Book.objects.all()
+<QuerySet [<Book: Harry Poter (5)>]>
+>>> book.save()
+
+>>> Book.objects.filter(author__last_name='Rowling')
+<QuerySet [<Book: Harry Poter (5)>]>
+>>> Book.objects.filter(author__last_name='Pinker')
+<QuerySet [<Book: Blank Slate (5)>]>
+>>> 
+
+>>> st.book_set.all()
+<QuerySet [<Book: Blank Slate (5)>]>
+
+
+  author=models.ForeignKey(Author, on_delete=models.CASCADE,null=True,related_name='books')
+
+>>> jk = Author.objects.get(first_name='J.K')
+>>> jk.books.all()
+<QuerySet [<Book: Harry Poter (5)>]>
+>>> jk.books.get(title='Harry Poter')
+<Book: Harry Poter (5)>
+new=jk.books.get(title='Harry Poter')
+>>> new.title
+'Harry Poter'
+>>> new.rating
+5
+
+====================
+OneToOneField
+
+from django.db import models
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+from django.shortcuts import reverse
+
+from django.utils.text import slugify
+
+# Create your models here.
+
+class Address(models.Model):
+    street=models.CharField(max_length=200)
+    postal_code=models.CharField(max_length=50)
+    city=models.CharField(max_length=50)
+  
+
+class Author(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    address=models.OneToOneField(Address,on_delete=models.CASCADE,null=True)
+   
+    
+        
+    def __str__(self):
+        
+        return f"{self.first_name} "
+    
+
+
+    
+
+class Book(models.Model):
+    title=models.CharField(max_length=50)
+    rating=models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    author=models.ForeignKey(Author, on_delete=models.CASCADE,null=True,related_name='books')
+    is_bestselling=models.BooleanField(default=False)
+    slug= models.SlugField(default="",null=False,blank=True,db_index=True)
+    def get_absolute_url(self):
+        return reverse("detail_page", args=[self.slug])
+    
+    # def save(self,*args,**kwargs):
+
+    #     self.slug =slugify(self.title)   ==> replaced after adding the admin prepopulate_field
+
+    #     super().save(*args,**kwargs)
+    
+    
+    def __str__(self):
+        
+        return f"{self.title} ({self.rating})"
+
+
+>>> from book_outlet.models import Author , Address
+
+>>> add1= Address(street="some street",postal_code=12345,city="London")
+>>> add2= Address(street="some new street",postal_code=55455,city="New York")
+>>> Author.objects.get(first_name="J.K")
+<Author: J.K >
+>>> add1.save()
+>>> add2.save()
+>>> hp=Author.objects.get(first_name="J.K")
+>>> hp.save()
+>>> exit()
+
+
+=========================
+
+ManyToMany
+
+
+from django.db import models
+
+from django.core.validators import MaxValueValidator, MinValueValidator
+
+from django.shortcuts import reverse
+
+from django.utils.text import slugify
+
+# Create your models here.
+
+class Country(models.Model):
+    name=models.CharField(max_length=100)
+    code=models.CharField(max_length=20)
+
+class Address(models.Model):
+    street=models.CharField(max_length=200)
+    postal_code=models.CharField(max_length=50)
+    city=models.CharField(max_length=50)
+    
+    def __str__(self):
+        return f"{self.street},{self.posta_code},{self.city}"
+    
+    class Meta:
+        verbose_name_plural="Address Entries"
+  
+
+class Author(models.Model):
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    address=models.OneToOneField(Address,on_delete=models.CASCADE,null=True)
+   
+    
+        
+    def __str__(self):
+        
+        return f"{self.first_name} "
+    
+
+
+    
+
+class Book(models.Model):
+    title=models.CharField(max_length=50)
+    rating=models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(5)])
+    author=models.ForeignKey(Author, on_delete=models.CASCADE,null=True,related_name='books')
+    is_bestselling=models.BooleanField(default=False)
+    slug= models.SlugField(default="",null=False,blank=True,db_index=True)
+    published_country=models.ManyToManyField(Country)
+    
+    
+    
+    def get_absolute_url(self):
+        return reverse("detail_page", args=[self.slug])
+    
+    # def save(self,*args,**kwargs):
+
+    #     self.slug =slugify(self.title)   ==> replaced after adding the admin prepopulate_field
+
+    #     super().save(*args,**kwargs)
+    
+    
+    def __str__(self):
+        
+        return f"{self.title} ({self.rating})"
+
+
+
+Python 3.10.7 (main, May 29 2023, 13:51:48) [GCC 12.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+(InteractiveConsole)
+
+>>> from book_outlet.models import Book,Country
+>>> Book.objects.all()
+<QuerySet [<Book: Harry Poter (5)>, <Book: Blank Slate (5)>]>
+>>> Book.objects.all()[0]
+<Book: Harry Poter (5)>
+>>> hp=Book.objects.all()[0]
+>>> hp
+<Book: Harry Poter (5)>
+>>> germany=Country(name="Germany",code="DE")
+>>> germany.save()
+>>> hp.published_country.add(germany)
+>>> hp.published_country
+<django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7f5156cf1900>
+
+
+>>> hp.published_country.all
+<bound method BaseManager.all of <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7f5157d6baf0>>
+>>> hp.published_country.all()
+<QuerySet [<Country: Country object (1)>]>
+>>> hp.published_country.filter(code="DE")
+<QuerySet [<Country: Country object (1)>]>
+
+>>> G=hp.published_country.filter(code="DE")
+>>> G
+<QuerySet [<Country: Country object (1)>]>
+>>> G[0].name
+'Germany'
+>>> 
+
+>>> Country.objects.all()
+<QuerySet [<Country: Country object (1)>]>
+>>> Country.objects.all()[0]
+<Country: Country object (1)>
+>>> ger=Country.objects.all()[0]
+>>> ger
+<Country: Country object (1)>
+>>> ger.book_set.all()   or use related name in model 
+<QuerySet [<Book: Harry Poter (5)>]>
+>>> 
+
+
+                     
+
+
+
+
+
+
+
+
 
 
 
